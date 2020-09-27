@@ -15,11 +15,11 @@ export class Recipe extends BaseEntity {
     description!: string;
 
     @Column({ nullable: true })
-    ingredients!: string;
+    ingredients!: string[];
 
     @Column()
     categoryId!: number;
 
     @Column()
-    userId!: number;
+    user!: number;
 }

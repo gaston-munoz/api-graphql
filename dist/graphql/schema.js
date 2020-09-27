@@ -58,7 +58,7 @@ const typeDefs = apollo_server_1.gql `
         name: String!
         description: String!
         ingredients: String!
-        userId: Int 
+        user: Int 
         categoryId: Int
     }
 
@@ -101,6 +101,7 @@ const typeDefs = apollo_server_1.gql `
 
         # Recipe
         recipes(filter: FilterRecipe): [Recipe]
+        myRecipes(filter: FilterRecipe): [Recipe]
         recipe(id: ID!): Recipe   
     }
 

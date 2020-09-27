@@ -5,6 +5,7 @@ import bcrypt  from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { authenticated, generateToken } from '../auth'
 import dotenv from 'dotenv';
+import { Like } from 'typeorm';
 dotenv.config();
 
 // User
@@ -100,6 +101,7 @@ interface FilterRecipe {
     description?: string
     ingredients?: string
     category?: string
+    user?: number
 }
 
 const resolvers = {
@@ -137,6 +139,23 @@ const resolvers = {
 
             return recipes;
         }), 
+        myRecipes: authenticated(async(_: any, { filter = {} }: FilterRecipeArg, { user }: ArgUser  ) => {
+            let { id } = user;
+            console.log('USER', user, id)
+            let { name = '', description = '' , ingredients = '', category = '' } = filter;
+/*            const recipes = await Recipe.find({ where: `name ILIKE '%${name}%' AND description ILIKE '%${description}%'
+              AND ingredients ILIKE '%${ingredients}%' and user in (${Number(id)})` });  
+              
+              ==>> Works but not find user
+*/
+            const recipes = await Recipe.find({  //// Its work
+                name: Like(`%${name}%`),
+                description: Like(`%${description}%`),
+                ingredients: Like(`%${ingredients}%`),
+                user: id
+            })
+            return recipes;
+        }),
         recipe: authenticated(async (_: any, { id }: RecipeIdArg) => {
                 let recipe = await Recipe.findOne({ id });
 
@@ -261,7 +280,7 @@ const resolvers = {
                     newRecipe.name = name;
                     newRecipe.description = description;
                     newRecipe.ingredients = ingredients;
-                    newRecipe.userId = userId;
+                    newRecipe.user = userId;
                     newRecipe.categoryId = categoryId;
                     await newRecipe.save();
         

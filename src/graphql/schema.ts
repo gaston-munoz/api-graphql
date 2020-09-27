@@ -57,7 +57,7 @@ const typeDefs = gql`
         name: String!
         description: String!
         ingredients: String!
-        userId: Int 
+        user: Int 
         categoryId: Int
     }
 
@@ -100,6 +100,7 @@ const typeDefs = gql`
 
         # Recipe
         recipes(filter: FilterRecipe): [Recipe]
+        myRecipes(filter: FilterRecipe): [Recipe]
         recipe(id: ID!): Recipe   
     }
 

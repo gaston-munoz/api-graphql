@@ -36,7 +36,7 @@ __decorate([
 __decorate([
     typeorm_1.Column(),
     __metadata("design:type", Number)
-], Recipe.prototype, "userId", void 0);
+], Recipe.prototype, "user", void 0);
 Recipe = __decorate([
     typeorm_1.Entity()
 ], Recipe);

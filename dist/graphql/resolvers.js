@@ -19,6 +19,7 @@ const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const auth_1 = require("../auth");
 const dotenv_1 = __importDefault(require("dotenv"));
+const typeorm_1 = require("typeorm");
 dotenv_1.default.config();
 const resolvers = {
     Query: {
@@ -46,6 +47,21 @@ const resolvers = {
             let { name = '', description = '', ingredients = '', category = '' } = filter;
             const recipes = yield recipe_1.Recipe.find({ where: `name ILIKE '%${name}%' and description ILIKE '%${description}%'
               and ingredients ILIKE '%${ingredients}%'` });
+            return recipes;
+        })),
+        myRecipes: auth_1.authenticated((_, { filter = {} }, { user }) => __awaiter(void 0, void 0, void 0, function* () {
+            let { id } = user;
+            console.log('USER', user, id);
+            let { name = '', description = '', ingredients = '', category = '' } = filter;
+            /*            const recipes = await Recipe.find({ where: `name ILIKE '%${name}%' AND description ILIKE '%${description}%'
+                          AND ingredients ILIKE '%${ingredients}%' and user in (${Number(id)})` });
+            */
+            const recipes = yield recipe_1.Recipe.find({
+                name: typeorm_1.Like(`%${name}%`),
+                description: typeorm_1.Like(`%${description}%`),
+                ingredients: typeorm_1.Like(`%${ingredients}%`),
+                user: id
+            });
             return recipes;
         })),
         recipe: auth_1.authenticated((_, { id }) => __awaiter(void 0, void 0, void 0, function* () {
@@ -152,7 +168,7 @@ const resolvers = {
                     newRecipe.name = name;
                     newRecipe.description = description;
                     newRecipe.ingredients = ingredients;
-                    newRecipe.userId = userId;
+                    newRecipe.user = userId;
                     newRecipe.categoryId = categoryId;
                     yield newRecipe.save();
                     return newRecipe;
