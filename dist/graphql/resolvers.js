@@ -33,19 +33,22 @@ const resolvers = {
             return users;
         }),
         // Category Queries
-        categories: auth_1.authenticated((_, __) => __awaiter(void 0, void 0, void 0, function* () {
-            const categories = yield category_1.Category.find();
+        categories: auth_1.authenticated((_, { filter }) => __awaiter(void 0, void 0, void 0, function* () {
+            let filterSearch = filter && filter.name ? filter.name : '';
+            const categories = yield category_1.Category.find({ where: `name ILIKE '%${filterSearch}%'` });
             return categories;
         })),
         category: auth_1.authenticated((_, { id }, { user }) => __awaiter(void 0, void 0, void 0, function* () {
             return yield category_1.Category.findOne({ id });
         })),
         // Recipes Queries 
-        recipes: auth_1.authenticated((_, __, { user }) => __awaiter(void 0, void 0, void 0, function* () {
-            const recipes = yield recipe_1.Recipe.find();
+        recipes: auth_1.authenticated((_, { filter = {} }) => __awaiter(void 0, void 0, void 0, function* () {
+            let { name = '', description = '', ingredients = '', category = '' } = filter;
+            const recipes = yield recipe_1.Recipe.find({ where: `name ILIKE '%${name}%' and description ILIKE '%${description}%'
+              and ingredients ILIKE '%${ingredients}%'` });
             return recipes;
         })),
-        recipe: auth_1.authenticated((_, { id }, { user }) => __awaiter(void 0, void 0, void 0, function* () {
+        recipe: auth_1.authenticated((_, { id }) => __awaiter(void 0, void 0, void 0, function* () {
             let recipe = yield recipe_1.Recipe.findOne({ id });
             return recipe;
         }))

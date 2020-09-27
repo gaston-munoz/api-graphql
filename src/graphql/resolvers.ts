@@ -26,13 +26,6 @@ interface UserLogin {
     user: IUserModel
 }
 
-type UserVerify = object | string | UserToken
-
-interface UserToken {
-    id: number,
-    email: string
-}
-
 interface Token {
     token: string
 }
@@ -56,6 +49,14 @@ interface CategoryData {
 
 interface CategoryId {
     id: number
+}
+
+interface FilterCategoryArg {
+    filter?: FilterCategory
+}
+
+interface FilterCategory {
+    name?: string
 }
 
 // Recipe Types
@@ -90,6 +91,17 @@ interface RecipeIdArg {
     id: number
 }
 
+interface FilterRecipeArg {
+    filter: FilterRecipe
+}
+
+interface FilterRecipe {
+    name?: string
+    description?: string
+    ingredients?: string
+    category?: string
+}
+
 const resolvers = {
     Query:{
 
@@ -107,9 +119,10 @@ const resolvers = {
         },
 
         // Category Queries
-        categories: authenticated(async (_: any, __: any) =>{
-            const categories = await Category.find();
-
+        categories: authenticated(async (_: any, { filter }: FilterCategoryArg) =>{
+            let filterSearch = filter && filter.name ? filter.name : '';
+            const categories = await Category.find({ where: `name ILIKE '%${filterSearch}%'` });
+   
             return categories;
         }),
         category: authenticated(async (_: any, { id }: CategoryId, { user }: ArgUser) => {
@@ -117,12 +130,14 @@ const resolvers = {
         }),
 
         // Recipes Queries 
-        recipes: authenticated(async(_: any, __: any, { user }: ArgUser ) => {
-                const recipes = await Recipe.find();
+        recipes: authenticated(async(_: any, { filter = {} }: FilterRecipeArg ) => {
+            let { name = '', description = '' , ingredients = '', category = '' } = filter;
+            const recipes = await Recipe.find({ where: `name ILIKE '%${name}%' and description ILIKE '%${description}%'
+              and ingredients ILIKE '%${ingredients}%'` });
 
-                return recipes;
+            return recipes;
         }), 
-        recipe: authenticated(async (_: any, { id }: RecipeIdArg, { user }: ArgUser) => {
+        recipe: authenticated(async (_: any, { id }: RecipeIdArg) => {
                 let recipe = await Recipe.findOne({ id });
 
                 return recipe; 

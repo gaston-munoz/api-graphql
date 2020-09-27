@@ -46,6 +46,10 @@ const typeDefs = gql`
         userId: Int
     }
 
+    input filterCategory {
+        name: String
+    }
+
     # Recipe Types
 
     type Recipe {
@@ -74,6 +78,13 @@ const typeDefs = gql`
         categoryId: Int
     }
 
+    input FilterRecipe {
+        name: String
+        description: String
+        ingredients: String
+        category: String
+    }
+
 
     # main
 
@@ -83,12 +94,12 @@ const typeDefs = gql`
         users: [User]
 
         # Category
-        categories: [Category] 
+        categories(filter: filterCategory): [Category] 
         category(id: ID!): Category
           # userCategories(userId: ID!): [Categories]
 
         # Recipe
-        recipes: [Recipe]
+        recipes(filter: FilterRecipe): [Recipe]
         recipe(id: ID!): Recipe   
     }
 

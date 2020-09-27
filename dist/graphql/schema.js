@@ -47,6 +47,10 @@ const typeDefs = apollo_server_1.gql `
         userId: Int
     }
 
+    input filterCategory {
+        name: String
+    }
+
     # Recipe Types
 
     type Recipe {
@@ -75,6 +79,13 @@ const typeDefs = apollo_server_1.gql `
         categoryId: Int
     }
 
+    input FilterRecipe {
+        name: String
+        description: String
+        ingredients: String
+        category: String
+    }
+
 
     # main
 
@@ -84,12 +95,12 @@ const typeDefs = apollo_server_1.gql `
         users: [User]
 
         # Category
-        categories: [Category] 
+        categories(filter: filterCategory): [Category] 
         category(id: ID!): Category
           # userCategories(userId: ID!): [Categories]
 
         # Recipe
-        recipes: [Recipe]
+        recipes(filter: FilterRecipe): [Recipe]
         recipe(id: ID!): Recipe   
     }
 
