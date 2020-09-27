@@ -17,12 +17,9 @@ const category_1 = require("../config/entity/category");
 const recipe_1 = require("../config/entity/recipe");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const auth_1 = require("../auth");
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
-const generateToken = (user, secret, expiresIn) => {
-    let { id, name, email } = user;
-    return jsonwebtoken_1.default.sign({ id, name, email }, secret, { expiresIn });
-};
 const resolvers = {
     Query: {
         // User Queries
@@ -36,42 +33,22 @@ const resolvers = {
             return users;
         }),
         // Category Queries
-        categories: (_, __, { user }) => __awaiter(void 0, void 0, void 0, function* () {
-            if (user) {
-                const categories = yield category_1.Category.find();
-                return categories;
-            }
-            else {
-                throw new Error('Not authorized to access this resource');
-            }
-        }),
-        category: (_, { id }, { user }) => __awaiter(void 0, void 0, void 0, function* () {
-            if (user) {
-                return yield category_1.Category.findOne({ id });
-            }
-            else {
-                throw new Error('Not authorized to access this resource');
-            }
-        }),
+        categories: auth_1.authenticated((_, __) => __awaiter(void 0, void 0, void 0, function* () {
+            const categories = yield category_1.Category.find();
+            return categories;
+        })),
+        category: auth_1.authenticated((_, { id }, { user }) => __awaiter(void 0, void 0, void 0, function* () {
+            return yield category_1.Category.findOne({ id });
+        })),
         // Recipes Queries 
-        recipes: (_, __, { user }) => __awaiter(void 0, void 0, void 0, function* () {
-            if (user) {
-                const recipes = yield recipe_1.Recipe.find();
-                return recipes;
-            }
-            else {
-                throw new Error('Not authorized to access this resource');
-            }
-        }),
-        recipe: (_, { id }, { user }) => __awaiter(void 0, void 0, void 0, function* () {
-            if (user) {
-                let recipe = yield recipe_1.Recipe.findOne({ id });
-                return recipe;
-            }
-            else {
-                throw new Error('Not authorized to access this resource');
-            }
-        })
+        recipes: auth_1.authenticated((_, __, { user }) => __awaiter(void 0, void 0, void 0, function* () {
+            const recipes = yield recipe_1.Recipe.find();
+            return recipes;
+        })),
+        recipe: auth_1.authenticated((_, { id }, { user }) => __awaiter(void 0, void 0, void 0, function* () {
+            let recipe = yield recipe_1.Recipe.findOne({ id });
+            return recipe;
+        }))
     },
     Mutation: {
         // User Mutations
@@ -108,14 +85,14 @@ const resolvers = {
                 throw new Error('Error bad credentials');
             }
             // generate the token and send
-            const token = generateToken(userExists, process.env.SECRET || 'TODOSLOSPERROSVANALCIELO', '24h');
+            const token = auth_1.generateToken(userExists, process.env.SECRET || 'TODOSLOSPERROSVANALCIELO', '24h');
             return {
                 user: userExists,
                 token
             };
         }),
         //// category Mutations
-        createCategory: (_, { input }, { user }) => __awaiter(void 0, void 0, void 0, function* () {
+        createCategory: auth_1.authenticated((_, { input }, { user }) => __awaiter(void 0, void 0, void 0, function* () {
             if (user) {
                 const { name, userId } = input;
                 try {
@@ -133,8 +110,8 @@ const resolvers = {
             else {
                 throw new Error('Not authorized to access this resource');
             }
-        }),
-        deleteCategory: (_, { id }, { user }) => __awaiter(void 0, void 0, void 0, function* () {
+        })),
+        deleteCategory: auth_1.authenticated((_, { id }, { user }) => __awaiter(void 0, void 0, void 0, function* () {
             if (user) {
                 const existsCat = yield category_1.Category.findOne({ id });
                 if (!existsCat) {
@@ -146,8 +123,8 @@ const resolvers = {
             else {
                 throw new Error('Not authorized to access this resource');
             }
-        }),
-        updateCategory: (_, { category }, { user }) => __awaiter(void 0, void 0, void 0, function* () {
+        })),
+        updateCategory: auth_1.authenticated((_, { category }, { user }) => __awaiter(void 0, void 0, void 0, function* () {
             if (user) {
                 let { id, name, userId } = category;
                 const existsCat = yield category_1.Category.findOne({ id });
@@ -162,9 +139,9 @@ const resolvers = {
             else {
                 throw new Error('Not authorized to access this resource');
             }
-        }),
+        })),
         // Recipes Mutations
-        createRecipe: (_, { recipe }, { user }) => __awaiter(void 0, void 0, void 0, function* () {
+        createRecipe: auth_1.authenticated((_, { recipe }, { user }) => __awaiter(void 0, void 0, void 0, function* () {
             if (user) {
                 let { name, description, ingredients, userId, categoryId } = recipe;
                 try {
@@ -184,8 +161,8 @@ const resolvers = {
             else {
                 throw new Error('Not authorized to access this resource');
             }
-        }),
-        updateRecipe: (_, { recipe }, { user }) => __awaiter(void 0, void 0, void 0, function* () {
+        })),
+        updateRecipe: auth_1.authenticated((_, { recipe }, { user }) => __awaiter(void 0, void 0, void 0, function* () {
             if (user) {
                 let { id, name, description, ingredients, userId, categoryId } = recipe;
                 const existsRecipe = yield recipe_1.Recipe.findOne({ id });
@@ -198,8 +175,8 @@ const resolvers = {
             else {
                 throw new Error('Not authorized to access this resource');
             }
-        }),
-        deleteRecipe: (_, { id }, { user }) => __awaiter(void 0, void 0, void 0, function* () {
+        })),
+        deleteRecipe: auth_1.authenticated((_, { id }, { user }) => __awaiter(void 0, void 0, void 0, function* () {
             if (user) {
                 let existsRecipe = yield recipe_1.Recipe.findOne({ id });
                 if (!existsRecipe) {
@@ -213,7 +190,7 @@ const resolvers = {
             else {
                 throw new Error('Not authorized to access this resource');
             }
-        })
+        }))
     }
 };
 exports.default = resolvers;

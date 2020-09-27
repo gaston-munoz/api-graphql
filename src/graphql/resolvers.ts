@@ -3,6 +3,7 @@ import { Category } from '../config/entity/category';
 import { Recipe } from '../config/entity/recipe';
 import bcrypt  from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { authenticated, generateToken } from '../auth'
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -34,12 +35,6 @@ interface UserToken {
 
 interface Token {
     token: string
-}
-
-const generateToken = (user: IUserModel, secret: string, expiresIn: string) => {
-    let { id, name, email } = user;
-
-    return jwt.sign({ id,name, email }, secret, { expiresIn });
 }
 
 // Category
@@ -112,47 +107,26 @@ const resolvers = {
         },
 
         // Category Queries
-        categories: async (_: any, __: any, { user }: ArgUser) =>{
-            if(user) {
-                const categories = await Category.find();
+        categories: authenticated(async (_: any, __: any) =>{
+            const categories = await Category.find();
 
-                return categories;
-            }
-            else {
-                throw new Error('Not authorized to access this resource');
-            }
-        },
-        category: async (_: any, { id }: CategoryId, { user }: ArgUser) => {
-            if(user) {
+            return categories;
+        }),
+        category: authenticated(async (_: any, { id }: CategoryId, { user }: ArgUser) => {
                 return await Category.findOne({ id });
-            }
-            else {
-                throw new Error('Not authorized to access this resource');
-            }
-        },
+        }),
 
         // Recipes Queries 
-        recipes: async(_: any, __: any, { user }: ArgUser ) => {
-            if(user) {
+        recipes: authenticated(async(_: any, __: any, { user }: ArgUser ) => {
                 const recipes = await Recipe.find();
 
                 return recipes;
-            }
-            else {
-                throw new Error('Not authorized to access this resource');
-            }
-        }, 
-        recipe: async (_: any, { id }: RecipeIdArg, { user }: ArgUser) => {
-            if(user) {
+        }), 
+        recipe: authenticated(async (_: any, { id }: RecipeIdArg, { user }: ArgUser) => {
                 let recipe = await Recipe.findOne({ id });
 
-                return recipe;
-            }
-            else {
-                throw new Error('Not authorized to access this resource');
-            }
-            
-        }
+                return recipe; 
+        })
 
     },
     Mutation: {
@@ -208,7 +182,7 @@ const resolvers = {
         },
 
         //// category Mutations
-        createCategory: async (_: any, { input }: ICategoryArg, { user }: ArgUser) => {
+        createCategory: authenticated(async (_: any, { input }: ICategoryArg, { user }: ArgUser) => {
             if(user) {
                 const { name, userId } = input;
 
@@ -227,8 +201,8 @@ const resolvers = {
             else {
                 throw new Error('Not authorized to access this resource');
             }
-        },
-        deleteCategory: async (_: any, { id }: CategoryId, { user }: ArgUser) => {
+        }),
+        deleteCategory: authenticated(async (_: any, { id }: CategoryId, { user }: ArgUser) => {
             if(user) {
                 const existsCat = await Category.findOne({id});
 
@@ -242,8 +216,8 @@ const resolvers = {
             else {
                 throw new Error('Not authorized to access this resource');
             }
-        },
-        updateCategory: async (_: any, { category }: CategoryArg, { user }: ArgUser) => {
+        }),
+        updateCategory: authenticated(async (_: any, { category }: CategoryArg, { user }: ArgUser) => {
             if(user) {
                 let { id, name, userId } = category;
 
@@ -260,10 +234,10 @@ const resolvers = {
             else {
                 throw new Error('Not authorized to access this resource');
             }
-        },
+        }),
 
         // Recipes Mutations
-        createRecipe: async (_: any, { recipe }: RecipeArg, { user }: ArgUser ) => {
+        createRecipe: authenticated(async (_: any, { recipe }: RecipeArg, { user }: ArgUser ) => {
             if(user) {
                 let { name, description, ingredients, userId, categoryId } = recipe;
 
@@ -284,8 +258,8 @@ const resolvers = {
             else {
                 throw new Error('Not authorized to access this resource');
             }
-        },
-        updateRecipe: async (_: any, { recipe }: UpdtRecipeArg, { user }: ArgUser) => {
+        }),
+        updateRecipe: authenticated(async (_: any, { recipe }: UpdtRecipeArg, { user }: ArgUser) => {
             if(user) {
                 let { id, name, description, ingredients, userId, categoryId } = recipe;
 
@@ -301,8 +275,8 @@ const resolvers = {
             else {
                 throw new Error('Not authorized to access this resource');
             }
-        },
-        deleteRecipe: async (_: any, { id }: RecipeIdArg, { user }: ArgUser) => {
+        }),
+        deleteRecipe: authenticated(async (_: any, { id }: RecipeIdArg, { user }: ArgUser) => {
             if(user) {
                 let existsRecipe = await Recipe.findOne({ id });
                 if(!existsRecipe) {
@@ -318,7 +292,7 @@ const resolvers = {
                 throw new Error('Not authorized to access this resource');
             }
 
-        }
+        })
 
     }
 }

@@ -28,14 +28,17 @@ const server = new apollo_server_1.ApolloServer({
     typeDefs: schema_1.default,
     resolvers: resolvers_1.default,
     context: ({ req }) => __awaiter(void 0, void 0, void 0, function* () {
-        const token = req.headers.authorization || '';
+        let token = null;
+        let user = null;
         try {
-            const user = jsonwebtoken_1.default.verify(token, process.env.SECRET || '');
-            return { user };
+            token = req.headers.authorization || '';
+            if (token)
+                user = jsonwebtoken_1.default.verify(token, process.env.SECRET || '');
         }
         catch (error) {
             console.log(error.message);
         }
+        return { user };
     })
 });
 // Starting the server
