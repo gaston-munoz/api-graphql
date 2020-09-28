@@ -28,10 +28,11 @@ const server = new apollo_server_1.ApolloServer({
     typeDefs: schema_1.default,
     resolvers: resolvers_1.default,
     context: ({ req }) => __awaiter(void 0, void 0, void 0, function* () {
+        var _a;
         let token = null;
         let user = null;
         try {
-            token = req.headers.authorization || '';
+            token = (_a = req.headers.authorization) === null || _a === void 0 ? void 0 : _a.split(' ')[1];
             if (token)
                 user = jsonwebtoken_1.default.verify(token, process.env.SECRET || '');
         }

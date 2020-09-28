@@ -26,7 +26,6 @@ const resolvers = {
         // User Queries
         getUser: (_, { token }) => __awaiter(void 0, void 0, void 0, function* () {
             const user = yield jsonwebtoken_1.default.verify(token, process.env.SECRET || '');
-            console.log('TOKEN', token, user);
             return user;
         }),
         users: (_, __, { user }) => __awaiter(void 0, void 0, void 0, function* () {
@@ -34,44 +33,97 @@ const resolvers = {
             return users;
         }),
         // Category Queries
-        categories: auth_1.authenticated((_, { filter }) => __awaiter(void 0, void 0, void 0, function* () {
-            let filterSearch = filter && filter.name ? filter.name : '';
-            const categories = yield category_1.Category.find({ where: `name ILIKE '%${filterSearch}%'` });
-            return categories;
+        getCategories: auth_1.authenticated((_, { filter }) => __awaiter(void 0, void 0, void 0, function* () {
+            try {
+                let filterSearch = filter && filter.name ? filter.name : '';
+                const categories = yield category_1.Category.find({ where: `Category.name ILIKE '%${filterSearch}%'` });
+                return categories;
+            }
+            catch (error) {
+                throw new Error(`Error processing request - ${error.message}`);
+            }
         })),
-        category: auth_1.authenticated((_, { id }, { user }) => __awaiter(void 0, void 0, void 0, function* () {
-            return yield category_1.Category.findOne({ id });
+        getOneCategory: auth_1.authenticated((_, { id }, { user }) => __awaiter(void 0, void 0, void 0, function* () {
+            try {
+                return yield category_1.Category.findOne({ id });
+            }
+            catch (error) {
+                throw new Error(`Error processing request - ${error.message}`);
+            }
         })),
-        // Recipes Queries 
-        recipes: auth_1.authenticated((_, { filter = {} }) => __awaiter(void 0, void 0, void 0, function* () {
-            let { name = '', description = '', ingredients = '', category = '' } = filter;
-            const recipes = yield recipe_1.Recipe.find({ where: `name ILIKE '%${name}%' and description ILIKE '%${description}%'
-              and ingredients ILIKE '%${ingredients}%'` });
-            return recipes;
+        // Recipes Queries
+        getRecipes: auth_1.authenticated((_, { filter = {} }) => __awaiter(void 0, void 0, void 0, function* () {
+            try { /*
+                let { name = '', description = '' , ingredients = '', category = '' } = filter;
+                const recipes = await Recipe.find({join: { alias: 'category',  leftJoinAndSelect: { category: 'category' } }, where: `name ILIKE '%${name}%' and description ILIKE '%${description}%'
+                  and  ingredients ILIKE '%${ingredients}%' and category.name = '${category}'`, relations: ['category'] ,
+                  });
+
+                const rec = await createQueryBuilder('recipe')
+                    .innerJoinAndSelect('recipe.category', 'category', "category.name ILIKE ")
+                    .where('')
+
+*/
+                let { name = '', description = '', ingredients = '', category } = filter;
+                let categoryDB = category ? { id: category } : undefined;
+                let query = {
+                    name: typeorm_1.Like(`%${name}%`),
+                    description: typeorm_1.Like(`%${description}%`),
+                    ingredients: typeorm_1.Like(`%${ingredients}%`),
+                };
+                if (category)
+                    query = Object.assign(Object.assign({}, query), { category: categoryDB });
+                const recipes = yield recipe_1.Recipe.find(query);
+                console.log('REC', recipes, category, categoryDB, query);
+                return recipes;
+            }
+            catch (error) {
+                throw new Error(`Error processing request - ${error.message}`);
+            }
         })),
-        myRecipes: auth_1.authenticated((_, { filter = {} }, { user }) => __awaiter(void 0, void 0, void 0, function* () {
-            let { id } = user;
-            console.log('USER', user, id);
-            let { name = '', description = '', ingredients = '', category = '' } = filter;
-            /*            const recipes = await Recipe.find({ where: `name ILIKE '%${name}%' AND description ILIKE '%${description}%'
-                          AND ingredients ILIKE '%${ingredients}%' and user in (${Number(id)})` });
-            */
-            const recipes = yield recipe_1.Recipe.find({
-                name: typeorm_1.Like(`%${name}%`),
-                description: typeorm_1.Like(`%${description}%`),
-                ingredients: typeorm_1.Like(`%${ingredients}%`),
-                user: id
-            });
-            return recipes;
+        getMyRecipes: auth_1.authenticated((_, { filter = {} }, { user }) => __awaiter(void 0, void 0, void 0, function* () {
+            try {
+                let { name = '', description = '', ingredients = '', category } = filter;
+                let userDb = { id: user.id };
+                let categoryDB = category ? { id: category } : undefined;
+                let query = {
+                    name: typeorm_1.Like(`%${name}%`),
+                    description: typeorm_1.Like(`%${description}%`),
+                    ingredients: typeorm_1.Like(`%${ingredients}%`),
+                    user: userDb
+                };
+                if (category)
+                    query = Object.assign(Object.assign({}, query), { category: categoryDB });
+                const recipes = yield recipe_1.Recipe.find(query);
+                /*
+                                let categoryDB = { id: category }
+                                const recipes = await Recipe.find({  //// Its work
+                                name: Like(`%${name}%`),
+                                description: Like(`%${description}%`),
+                                ingredients: Like(`%${ingredients}%`),
+                                user: userDb,
+                                category: categoryDB
+                                })
+                */
+                return recipes;
+            }
+            catch (error) {
+                throw new Error(`Internal server Error - ${error.message}`);
+            }
         })),
-        recipe: auth_1.authenticated((_, { id }) => __awaiter(void 0, void 0, void 0, function* () {
-            let recipe = yield recipe_1.Recipe.findOne({ id });
-            return recipe;
+        getOneRecipe: auth_1.authenticated((_, { id }) => __awaiter(void 0, void 0, void 0, function* () {
+            try {
+                let recipe = yield recipe_1.Recipe.findOne({ id });
+                return recipe;
+            }
+            catch (error) {
+                throw new Error(`Error processing request - ${error.message}`);
+            }
         }))
     },
     Mutation: {
         // User Mutations
-        registry: (_, { user }) => __awaiter(void 0, void 0, void 0, function* () {
+        signUp: (_, { user }) => __awaiter(void 0, void 0, void 0, function* () {
             let { name, email, password } = user;
             const userExist = yield user_1.User.findOne({ email });
             if (userExist) {
@@ -88,7 +140,7 @@ const resolvers = {
             }
             catch (error) {
                 console.log(error);
-                throw new Error('CODE STATUS 500 - Internal server error');
+                throw new Error(`Error processing request - ${error.message}`);
             }
         }),
         login: (_, { user }) => __awaiter(void 0, void 0, void 0, function* () {
@@ -104,34 +156,28 @@ const resolvers = {
                 throw new Error('Error bad credentials');
             }
             // generate the token and send
-            const token = auth_1.generateToken(userExists, process.env.SECRET || 'TODOSLOSPERROSVANALCIELO', '24h');
+            const token = auth_1.generateToken(userExists, process.env.SECRET || '', '24h');
             return {
                 user: userExists,
                 token
             };
         }),
         //// category Mutations
-        createCategory: auth_1.authenticated((_, { input }, { user }) => __awaiter(void 0, void 0, void 0, function* () {
-            if (user) {
-                const { name, userId } = input;
-                try {
-                    const newCateg = new category_1.Category();
-                    newCateg.name = name;
-                    newCateg.userId = userId;
-                    yield newCateg.save();
-                    return newCateg;
-                }
-                catch (error) {
-                    console.log(error);
-                    throw new Error('Status code 500 - Internal server error');
-                }
+        createCategory: auth_1.authenticated((_, { input }) => __awaiter(void 0, void 0, void 0, function* () {
+            const { name } = input;
+            try {
+                const newCateg = new category_1.Category();
+                newCateg.name = name;
+                yield newCateg.save();
+                return newCateg;
             }
-            else {
-                throw new Error('Not authorized to access this resource');
+            catch (error) {
+                console.log(error);
+                throw new Error(`Error processing request - ${error.message}`);
             }
         })),
-        deleteCategory: auth_1.authenticated((_, { id }, { user }) => __awaiter(void 0, void 0, void 0, function* () {
-            if (user) {
+        deleteCategory: auth_1.authenticated((_, { id }) => __awaiter(void 0, void 0, void 0, function* () {
+            try {
                 const existsCat = yield category_1.Category.findOne({ id });
                 if (!existsCat) {
                     throw new Error('Category not exists');
@@ -139,64 +185,65 @@ const resolvers = {
                 yield category_1.Category.remove(existsCat);
                 return existsCat;
             }
-            else {
-                throw new Error('Not authorized to access this resource');
+            catch (err) {
+                throw new Error(`Error processing request - ${err.message}`);
             }
         })),
-        updateCategory: auth_1.authenticated((_, { category }, { user }) => __awaiter(void 0, void 0, void 0, function* () {
-            if (user) {
-                let { id, name, userId } = category;
+        updateCategory: auth_1.authenticated((_, { category }) => __awaiter(void 0, void 0, void 0, function* () {
+            try {
+                let { id, name } = category;
                 const existsCat = yield category_1.Category.findOne({ id });
                 if (existsCat) {
-                    yield category_1.Category.update({ id }, { name, userId });
+                    yield category_1.Category.update({ id }, { name });
                     return category;
                 }
                 else {
                     throw new Error('Category not exists');
                 }
             }
-            else {
-                throw new Error('Not authorized to access this resource');
+            catch (err) {
+                throw new Error(`Error processing request - ${err.message}`);
             }
         })),
         // Recipes Mutations
         createRecipe: auth_1.authenticated((_, { recipe }, { user }) => __awaiter(void 0, void 0, void 0, function* () {
-            if (user) {
-                let { name, description, ingredients, userId, categoryId } = recipe;
-                try {
+            let { name, description, ingredients, categoryId } = recipe;
+            try {
+                let userDB = (yield user_1.User.findOne({ id: user.id })) || new user_1.User();
+                let catDB = (yield category_1.Category.findOne({ id: categoryId })) || new category_1.Category();
+                console.log('ERRER', recipe, userDB, catDB, catDB.id);
+                if (catDB.id) {
                     const newRecipe = new recipe_1.Recipe();
                     newRecipe.name = name;
                     newRecipe.description = description;
                     newRecipe.ingredients = ingredients;
-                    newRecipe.user = userId;
-                    newRecipe.categoryId = categoryId;
+                    newRecipe.user = userDB;
+                    newRecipe.category = catDB;
                     yield newRecipe.save();
                     return newRecipe;
                 }
-                catch (error) {
-                    throw new Error(`Code status 500 - Internal server error - ${error.message}`);
+                else {
+                    throw new Error('Category not exists');
                 }
             }
-            else {
-                throw new Error('Not authorized to access this resource');
+            catch (error) {
+                throw new Error(`Error processing request - ${error.message}`);
             }
         })),
-        updateRecipe: auth_1.authenticated((_, { recipe }, { user }) => __awaiter(void 0, void 0, void 0, function* () {
-            if (user) {
-                let { id, name, description, ingredients, userId, categoryId } = recipe;
-                const existsRecipe = yield recipe_1.Recipe.findOne({ id });
-                if (existsRecipe) {
-                    yield recipe_1.Recipe.update({ id }, recipe);
-                    return yield recipe_1.Recipe.findOne({ id });
+        updateRecipe: auth_1.authenticated((_, { recipe }) => __awaiter(void 0, void 0, void 0, function* () {
+            let { id } = recipe;
+            const existsRecipe = yield recipe_1.Recipe.findOne({ id });
+            if (existsRecipe) {
+                if (recipe.categoryId) {
+                    recipe.category = yield category_1.Category.findOne({ id: recipe.categoryId });
                 }
-                throw new Error('Recipe not exists');
+                yield recipe_1.Recipe.update({ id }, recipe);
+                return yield recipe_1.Recipe.findOne({ id });
             }
-            else {
-                throw new Error('Not authorized to access this resource');
-            }
+            throw new Error('Recipe not exists');
         })),
-        deleteRecipe: auth_1.authenticated((_, { id }, { user }) => __awaiter(void 0, void 0, void 0, function* () {
-            if (user) {
+        deleteRecipe: auth_1.authenticated((_, { id }) => __awaiter(void 0, void 0, void 0, function* () {
+            try {
                 let existsRecipe = yield recipe_1.Recipe.findOne({ id });
                 if (!existsRecipe) {
                     throw new Error('Recipe not exists');
@@ -206,8 +253,8 @@ const resolvers = {
                     return existsRecipe;
                 }
             }
-            else {
-                throw new Error('Not authorized to access this resource');
+            catch (err) {
+                throw new Error(`Error processing request - ${err.message}`);
             }
         }))
     }

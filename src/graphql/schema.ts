@@ -32,7 +32,7 @@ const typeDefs = gql`
     type Category {
         id: ID
         name: String
-        userId: Int
+        recipes: [Recipe]
     }
 
     input NewCategoryInput {
@@ -43,7 +43,6 @@ const typeDefs = gql`
     input updateCategoryInput {
         id: ID!,
         name: String,
-        userId: Int
     }
 
     input filterCategory {
@@ -57,15 +56,14 @@ const typeDefs = gql`
         name: String!
         description: String!
         ingredients: String!
-        user: Int 
-        categoryId: Int
+        user: User 
+        category: Category
     }
 
     input CreateRecipeInput {
         name: String!
         description: String!
         ingredients: String!
-        userId: Int !
         categoryId: Int!
     }
     
@@ -82,7 +80,7 @@ const typeDefs = gql`
         name: String
         description: String
         ingredients: String
-        category: String
+        category: Int
     }
 
 
@@ -94,20 +92,20 @@ const typeDefs = gql`
         users: [User]
 
         # Category
-        categories(filter: filterCategory): [Category] 
-        category(id: ID!): Category
+        getCategories(filter: filterCategory): [Category] 
+        getOneCategory(id: ID!): Category
           # userCategories(userId: ID!): [Categories]
 
         # Recipe
-        recipes(filter: FilterRecipe): [Recipe]
-        myRecipes(filter: FilterRecipe): [Recipe]
-        recipe(id: ID!): Recipe   
+        getRecipes(filter: FilterRecipe): [Recipe]
+        getMyRecipes(filter: FilterRecipe): [Recipe]
+        getOneRecipe(id: ID!): Recipe   
     }
 
     
     type Mutation {
         # User
-        registry(user: UserInput!): User
+        signUp(user: UserInput!): User
         login(user: UserLoginInput!): UserToken
 
         # Category

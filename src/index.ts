@@ -7,6 +7,7 @@ import typeDefs from './graphql/schema';
 // import resolversCategory from './graphql/resolvers/categoryResolver';
 // import typeDefsCategory from './graphql/schema/categorySchema';
 import { connect } from './config/typeorm';
+import { User } from './config/entity/user'
 import jwt from 'jsonwebtoken';
 dotenv.config({ path: '../.env'});
 connect();
@@ -17,10 +18,9 @@ const server = new ApolloServer({
         let token = null;
         let user = null;    
         try {
-            token = req.headers.authorization || '';
+            token = req.headers.authorization?.split(' ')[1];
             if(token)
                 user = jwt.verify(token, process.env.SECRET || '')
-
         } catch (error) {
             console.log(error.message);
         }

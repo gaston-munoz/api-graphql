@@ -11,6 +11,8 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Recipe = void 0;
 const typeorm_1 = require("typeorm");
+const category_1 = require("./category");
+const user_1 = require("./user");
 let Recipe = class Recipe extends typeorm_1.BaseEntity {
 };
 __decorate([
@@ -18,7 +20,7 @@ __decorate([
     __metadata("design:type", Number)
 ], Recipe.prototype, "id", void 0);
 __decorate([
-    typeorm_1.Column(),
+    typeorm_1.Column({ unique: true }),
     __metadata("design:type", String)
 ], Recipe.prototype, "name", void 0);
 __decorate([
@@ -30,13 +32,14 @@ __decorate([
     __metadata("design:type", String)
 ], Recipe.prototype, "ingredients", void 0);
 __decorate([
-    typeorm_1.Column(),
-    __metadata("design:type", Number)
-], Recipe.prototype, "categoryId", void 0);
-__decorate([
-    typeorm_1.Column(),
-    __metadata("design:type", Number)
+    typeorm_1.ManyToOne(type => user_1.User, { eager: true }),
+    __metadata("design:type", user_1.User)
 ], Recipe.prototype, "user", void 0);
+__decorate([
+    typeorm_1.ManyToOne(type => category_1.Category, category => category.recipes, { eager: true }),
+    typeorm_1.JoinTable(),
+    __metadata("design:type", category_1.Category)
+], Recipe.prototype, "category", void 0);
 Recipe = __decorate([
     typeorm_1.Entity()
 ], Recipe);

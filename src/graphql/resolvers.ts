@@ -5,7 +5,7 @@ import bcrypt  from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { authenticated, generateToken } from '../auth'
 import dotenv from 'dotenv';
-import { Like } from 'typeorm';
+import { createQueryBuilder, FindOperator, Like } from 'typeorm';
 dotenv.config();
 
 // User
@@ -43,9 +43,8 @@ interface CategoryArg {
 }
 
 interface CategoryData {
-    id?:number,
+    id:number,
     name: string,
-    userId: number
 }
 
 interface CategoryId {
@@ -72,7 +71,7 @@ interface RecipeData {
     description: string,
     ingredients: string,
     userId: number, 
-    categoryId: number
+    categoryId?: number,
 }
 
 interface UpdtRecipeArg {
@@ -86,6 +85,8 @@ interface UpdtRecipe {
     ingredients?: string,
     userId?: number, 
     categoryId?: number
+    category?: Category
+
 }
 
 interface RecipeIdArg {
@@ -100,8 +101,23 @@ interface FilterRecipe {
     name?: string
     description?: string
     ingredients?: string
-    category?: string
+    category?: number
     user?: number
+}
+
+// Interfaces query
+
+
+interface ICatId {
+    id: number | undefined
+}  
+
+interface IQuery {
+    name: FindOperator<string>;
+    description: FindOperator<string>;
+    ingredients: FindOperator<string>;
+    category?: ICatId | undefined 
+    user?: ICatId
 }
 
 const resolvers = {
@@ -110,7 +126,6 @@ const resolvers = {
          // User Queries
         getUser: async (_ : any, { token }: Token) => {
             const user = await jwt.verify(token, process.env.SECRET || '');
-            console.log('TOKEN', token, user)
 
             return user
         },
@@ -121,52 +136,106 @@ const resolvers = {
         },
 
         // Category Queries
-        categories: authenticated(async (_: any, { filter }: FilterCategoryArg) =>{
-            let filterSearch = filter && filter.name ? filter.name : '';
-            const categories = await Category.find({ where: `name ILIKE '%${filterSearch}%'` });
-   
-            return categories;
+        getCategories: authenticated(async (_: any, { filter }: FilterCategoryArg) =>{
+            try {
+                let filterSearch = filter && filter.name ? filter.name : '';
+                const categories = await Category.find({ where: `Category.name ILIKE '%${filterSearch}%'` });
+       
+                return categories;
+            } catch (error) {
+                throw new Error(`Error processing request - ${error.message}`);
+            }
         }),
-        category: authenticated(async (_: any, { id }: CategoryId, { user }: ArgUser) => {
+        getOneCategory: authenticated(async (_: any, { id }: CategoryId, { user }: ArgUser) => {
+            try {
                 return await Category.findOne({ id });
+            } catch (error) {
+                throw new Error(`Error processing request - ${error.message}`);
+            }
         }),
 
-        // Recipes Queries 
-        recipes: authenticated(async(_: any, { filter = {} }: FilterRecipeArg ) => {
-            let { name = '', description = '' , ingredients = '', category = '' } = filter;
-            const recipes = await Recipe.find({ where: `name ILIKE '%${name}%' and description ILIKE '%${description}%'
-              and ingredients ILIKE '%${ingredients}%'` });
+        // Recipes Queries
+        getRecipes: authenticated(async(_: any, { filter = {} }: FilterRecipeArg ) => {
+            try {/*
+                let { name = '', description = '' , ingredients = '', category = '' } = filter;
+                const recipes = await Recipe.find({join: { alias: 'category',  leftJoinAndSelect: { category: 'category' } }, where: `name ILIKE '%${name}%' and description ILIKE '%${description}%'
+                  and  ingredients ILIKE '%${ingredients}%' and category.name = '${category}'`, relations: ['category'] , 
+                  });
 
-            return recipes;
-        }), 
-        myRecipes: authenticated(async(_: any, { filter = {} }: FilterRecipeArg, { user }: ArgUser  ) => {
-            let { id } = user;
-            console.log('USER', user, id)
-            let { name = '', description = '' , ingredients = '', category = '' } = filter;
-/*            const recipes = await Recipe.find({ where: `name ILIKE '%${name}%' AND description ILIKE '%${description}%'
-              AND ingredients ILIKE '%${ingredients}%' and user in (${Number(id)})` });  
-              
-              ==>> Works but not find user
+                const rec = await createQueryBuilder('recipe') 
+                    .innerJoinAndSelect('recipe.category', 'category', "category.name ILIKE ")
+                    .where('')
+
 */
-            const recipes = await Recipe.find({  //// Its work
+                let { name = '', description = '' , ingredients = '', category  } = filter;
+                    
+                let categoryDB = category ? { id: category } : undefined
+                
+
+
+                let query: IQuery = {
+                    name: Like(`%${name}%`),
+                    description: Like(`%${description}%`),
+                    ingredients: Like(`%${ingredients}%`),
+                }
+
+                if(category)
+                    query = { ...query, category: categoryDB }
+
+                const recipes = await Recipe.find(query)  
+                console.log('REC',recipes, category, categoryDB, query)  
+    
+                return recipes;
+            } catch (error) {
+                throw new Error(`Error processing request - ${error.message}`);
+            }
+        }), 
+        getMyRecipes: authenticated(async(_: any, { filter = {} }: FilterRecipeArg, { user }: ArgUser  ) => {
+            try {
+                let { name = '', description = '' , ingredients = '', category } = filter;
+                let userDb = { id: user.id };
+
+                let categoryDB = category ? { id: category } : undefined
+                let query: IQuery = { 
+                    name: Like(`%${name}%`),
+                    description: Like(`%${description}%`),
+                    ingredients: Like(`%${ingredients}%`),
+                    user: userDb
+                }
+                if(category)
+                   query = { ...query, category: categoryDB }
+                   
+                const recipes = await Recipe.find(query)
+
+/*
+                let categoryDB = { id: category }
+                const recipes = await Recipe.find({  //// Its work
                 name: Like(`%${name}%`),
                 description: Like(`%${description}%`),
                 ingredients: Like(`%${ingredients}%`),
-                user: id
-            })
-            return recipes;
+                user: userDb,
+                category: categoryDB
+                })
+*/
+                return recipes;
+            } catch (error) {
+                throw new Error(`Internal server Error - ${error.message}`);
+            }
         }),
-        recipe: authenticated(async (_: any, { id }: RecipeIdArg) => {
+        getOneRecipe: authenticated(async (_: any, { id }: RecipeIdArg) => {
+            try {
                 let recipe = await Recipe.findOne({ id });
 
                 return recipe; 
+            } catch (error) {
+                throw new Error(`Error processing request - ${error.message}`);
+            }
         })
-
     },
     Mutation: {
 
         // User Mutations
-        registry: async (_: any, { user }: ArgUser ) =>{
+        signUp: async (_: any, { user }: ArgUser ) =>{
             let { name, email, password } : IUserModel = user;
             const userExist: DBUser = await User.findOne({ email })
 
@@ -185,7 +254,7 @@ const resolvers = {
                 return nUser;
             } catch (error) {
                 console.log(error);
-                throw new Error('CODE STATUS 500 - Internal server error');
+                throw new Error(`Error processing request - ${error.message}`);
             }
            
         },
@@ -208,7 +277,7 @@ const resolvers = {
             }
 
             // generate the token and send
-            const token = generateToken(userExists, process.env.SECRET || 'TODOSLOSPERROSVANALCIELO', '24h')
+            const token = generateToken(userExists, process.env.SECRET || '', '24h')
             return {
                 user: userExists,
                 token
@@ -216,28 +285,22 @@ const resolvers = {
         },
 
         //// category Mutations
-        createCategory: authenticated(async (_: any, { input }: ICategoryArg, { user }: ArgUser) => {
-            if(user) {
-                const { name, userId } = input;
+        createCategory: authenticated(async (_: any, { input }: ICategoryArg) => {
+                const { name } = input;
 
                 try {              
                     const newCateg = new Category();
                     newCateg.name = name;
-                    newCateg.userId = userId;
                     await newCateg.save();
     
                     return newCateg;
                 } catch (error) {
                     console.log(error);
-                    throw new Error('Status code 500 - Internal server error');
+                    throw new Error(`Error processing request - ${error.message}`);
                 }
-            }
-            else {
-                throw new Error('Not authorized to access this resource');
-            }
         }),
-        deleteCategory: authenticated(async (_: any, { id }: CategoryId, { user }: ArgUser) => {
-            if(user) {
+        deleteCategory: authenticated(async (_: any, { id }: CategoryId) => {
+            try {
                 const existsCat = await Category.findOne({id});
 
                 if(!existsCat) {
@@ -247,17 +310,17 @@ const resolvers = {
     
                 return existsCat;
             }
-            else {
-                throw new Error('Not authorized to access this resource');
+            catch (err) {
+                throw new Error(`Error processing request - ${err.message}`, );
             }
         }),
-        updateCategory: authenticated(async (_: any, { category }: CategoryArg, { user }: ArgUser) => {
-            if(user) {
-                let { id, name, userId } = category;
+        updateCategory: authenticated(async (_: any, { category }: CategoryArg) => {
+            try {
+                let { id, name } = category;
 
                 const existsCat = await Category.findOne({ id }); 
                 if(existsCat){
-                   await Category.update({ id }, { name, userId });
+                   await Category.update({ id }, { name });
                    
                    return category;
                 }
@@ -265,53 +328,57 @@ const resolvers = {
                     throw new Error('Category not exists');
                 }
             }
-            else {
-                throw new Error('Not authorized to access this resource');
+            catch(err) {
+                throw new Error(`Error processing request - ${err.message}`);
             }
         }),
 
         // Recipes Mutations
         createRecipe: authenticated(async (_: any, { recipe }: RecipeArg, { user }: ArgUser ) => {
-            if(user) {
-                let { name, description, ingredients, userId, categoryId } = recipe;
+                let { name, description, ingredients, categoryId } = recipe;
 
                 try {
-                    const newRecipe = new Recipe();
-                    newRecipe.name = name;
-                    newRecipe.description = description;
-                    newRecipe.ingredients = ingredients;
-                    newRecipe.user = userId;
-                    newRecipe.categoryId = categoryId;
-                    await newRecipe.save();
-        
-                    return newRecipe;
+                    let userDB = await User.findOne({ id: user.id }) || new User();  
+                    let catDB = await Category.findOne({id: categoryId}) || new Category();
+
+                    console.log('ERRER', recipe, userDB, catDB, catDB.id)
+
+                    if(catDB.id) {
+                            
+                        const newRecipe = new Recipe();
+                        newRecipe.name = name;
+                        newRecipe.description = description;
+                        newRecipe.ingredients = ingredients;
+                        newRecipe.user = userDB;
+                        newRecipe.category = catDB;
+                        await newRecipe.save();
+            
+                        return newRecipe;
+                    }
+                    else {
+                        throw new Error('Category not exists');
+                    }
                 } catch (error) {
-                    throw new Error(`Code status 500 - Internal server error - ${error.message}`);
+                    throw new Error(`Error processing request - ${error.message}`);
                 }
-            }
-            else {
-                throw new Error('Not authorized to access this resource');
-            }
         }),
-        updateRecipe: authenticated(async (_: any, { recipe }: UpdtRecipeArg, { user }: ArgUser) => {
-            if(user) {
-                let { id, name, description, ingredients, userId, categoryId } = recipe;
+        updateRecipe: authenticated(async (_: any, { recipe }: UpdtRecipeArg) => {
+                let { id } = recipe;
 
                 const existsRecipe = await Recipe.findOne({ id });
                 if(existsRecipe) {
+                    if(recipe.categoryId) {
+                        recipe.category = await Category.findOne({ id: recipe.categoryId})
+                    }
                     await Recipe.update({ id }, recipe);
     
                     return await Recipe.findOne({ id });
                 }
     
                 throw new Error('Recipe not exists');
-            }
-            else {
-                throw new Error('Not authorized to access this resource');
-            }
         }),
-        deleteRecipe: authenticated(async (_: any, { id }: RecipeIdArg, { user }: ArgUser) => {
-            if(user) {
+        deleteRecipe: authenticated(async (_: any, { id }: RecipeIdArg) => {
+            try {
                 let existsRecipe = await Recipe.findOne({ id });
                 if(!existsRecipe) {
                     throw new Error('Recipe not exists');
@@ -322,8 +389,8 @@ const resolvers = {
                     return existsRecipe;
                 }
             }
-            else {
-                throw new Error('Not authorized to access this resource');
+            catch (err) {
+                throw new Error(`Error processing request - ${err.message}`);
             }
 
         })

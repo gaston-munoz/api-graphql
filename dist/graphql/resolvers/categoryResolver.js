@@ -22,7 +22,7 @@ const resolvers = {
             const { name, userId } = input;
             const newCateg = new category_1.Category();
             newCateg.name = name;
-            newCateg.userId = userId;
+            //newCateg.userId = userId;
             yield newCateg.save();
             return newCateg;
         })

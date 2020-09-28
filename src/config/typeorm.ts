@@ -7,6 +7,7 @@ dotenv.config();
 
 
 export const connect = async () => {
+  try {
     await createConnection({
         type       : 'postgres',
         host       : process.env.PG_HOST,
@@ -17,10 +18,13 @@ export const connect = async () => {
         synchronize: true, 
         ssl: {
             rejectUnauthorized: false
-          } , 
+            } , 
         entities   : [
             path.join(__dirname, 'entity/**.js')
         ],
     });
-    signale.success("Cloud PostgreSQL DB connected");
+    signale.success("PostgreSQL Cloud is connected");
+  } catch (error) {
+      signale.error(`PostgreSQL Cloud connection error - ${error.message}`);
+  }
 }
