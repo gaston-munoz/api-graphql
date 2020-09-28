@@ -5,7 +5,7 @@ import bcrypt  from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { authenticated, generateToken } from '../auth'
 import dotenv from 'dotenv';
-import { createQueryBuilder, FindOperator, Like } from 'typeorm';
+import { FindOperator, Like } from 'typeorm';
 dotenv.config();
 
 // User
@@ -156,32 +156,16 @@ const resolvers = {
 
         // Recipes Queries
         getRecipes: authenticated(async(_: any, { filter = {} }: FilterRecipeArg ) => {
-            try {/*
-                let { name = '', description = '' , ingredients = '', category = '' } = filter;
-                const recipes = await Recipe.find({join: { alias: 'category',  leftJoinAndSelect: { category: 'category' } }, where: `name ILIKE '%${name}%' and description ILIKE '%${description}%'
-                  and  ingredients ILIKE '%${ingredients}%' and category.name = '${category}'`, relations: ['category'] , 
-                  });
-
-                const rec = await createQueryBuilder('recipe') 
-                    .innerJoinAndSelect('recipe.category', 'category', "category.name ILIKE ")
-                    .where('')
-
-*/
-                let { name = '', description = '' , ingredients = '', category  } = filter;
-                    
-                let categoryDB = category ? { id: category } : undefined
-                
-
-
+            try {
+                let { name = '', description = '' , ingredients = '', category  } = filter;      
+                let categoryDB = category ? { id: category } : undefined            
                 let query: IQuery = {
                     name: Like(`%${name}%`),
                     description: Like(`%${description}%`),
                     ingredients: Like(`%${ingredients}%`),
                 }
-
                 if(category)
                     query = { ...query, category: categoryDB }
-
                 const recipes = await Recipe.find(query)  
                 console.log('REC',recipes, category, categoryDB, query)  
     
@@ -194,7 +178,6 @@ const resolvers = {
             try {
                 let { name = '', description = '' , ingredients = '', category } = filter;
                 let userDb = { id: user.id };
-
                 let categoryDB = category ? { id: category } : undefined
                 let query: IQuery = { 
                     name: Like(`%${name}%`),
@@ -204,19 +187,8 @@ const resolvers = {
                 }
                 if(category)
                    query = { ...query, category: categoryDB }
-                   
                 const recipes = await Recipe.find(query)
 
-/*
-                let categoryDB = { id: category }
-                const recipes = await Recipe.find({  //// Its work
-                name: Like(`%${name}%`),
-                description: Like(`%${description}%`),
-                ingredients: Like(`%${ingredients}%`),
-                user: userDb,
-                category: categoryDB
-                })
-*/
                 return recipes;
             } catch (error) {
                 throw new Error(`Internal server Error - ${error.message}`);
@@ -232,17 +204,16 @@ const resolvers = {
             }
         })
     },
+
     Mutation: {
 
         // User Mutations
         signUp: async (_: any, { user }: ArgUser ) =>{
             let { name, email, password } : IUserModel = user;
             const userExist: DBUser = await User.findOne({ email })
-
             if(userExist) {
                 throw new Error('The email already exists')
-            }
-            
+            }            
             try {
                 const salt: string  = await bcrypt.genSalt(10);
                 let nUser = new User();
@@ -255,8 +226,7 @@ const resolvers = {
             } catch (error) {
                 console.log(error);
                 throw new Error(`Error processing request - ${error.message}`);
-            }
-           
+            }   
         },
 
         login: async (_: any , { user }: UserLogin) => {
@@ -287,7 +257,6 @@ const resolvers = {
         //// category Mutations
         createCategory: authenticated(async (_: any, { input }: ICategoryArg) => {
                 const { name } = input;
-
                 try {              
                     const newCateg = new Category();
                     newCateg.name = name;
@@ -341,10 +310,7 @@ const resolvers = {
                     let userDB = await User.findOne({ id: user.id }) || new User();  
                     let catDB = await Category.findOne({id: categoryId}) || new Category();
 
-                    console.log('ERRER', recipe, userDB, catDB, catDB.id)
-
-                    if(catDB.id) {
-                            
+                    if(catDB.id) {  
                         const newRecipe = new Recipe();
                         newRecipe.name = name;
                         newRecipe.description = description;

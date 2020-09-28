@@ -14,6 +14,8 @@ connect();
 const server = new ApolloServer({
     typeDefs,
     resolvers,
+    introspection: true,
+    playground: true,
     context: async ({ req }) => {
         let token = null;
         let user = null;    
