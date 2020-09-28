@@ -29,9 +29,13 @@ const server = new ApolloServer({
     }
 });
 
+// POrt
+
+const port: number | string = process.env.PORT || 4000; 
+
 // Starting the server
 
-server.listen(5000)
+server.listen(port)
     .then(({url}) => {
         signale.success(`Server listening on ${url}`);
     })
