@@ -93,7 +93,6 @@ const typeDefs = gql`
 
     type Query {
         # User
-        getUser(token: String!): User
         users: [User]
 
         # Category
