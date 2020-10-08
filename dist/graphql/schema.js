@@ -94,7 +94,6 @@ const typeDefs = apollo_server_1.gql `
 
     type Query {
         # User
-        getUser(token: String!): User
         users: [User]
 
         # Category
