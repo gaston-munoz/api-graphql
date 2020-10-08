@@ -8,7 +8,7 @@ export class Category extends BaseEntity {
     @PrimaryGeneratedColumn()
     id!: number;
 
-    @Column()
+    @Column({ unique: true })
     name!: string;
 
     @OneToMany(type => Recipe, recipe => recipe.category)

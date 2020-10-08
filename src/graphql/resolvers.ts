@@ -13,7 +13,23 @@ interface ArgUser {
     user: IUserModel
 }
 
+interface UserID {
+    id: number
+}
+
 type DBUser =  IUserModel | undefined
+
+interface UserUpt {
+    user: IUserUpd
+}
+
+interface IUserUpd {
+    id: number,
+    name?: string,
+    email?: string,
+    password?: string,
+    createdAt?: string
+}
 
 interface IUserModel {
     id?: number,
@@ -84,9 +100,7 @@ interface UpdtRecipe {
     description?: string,
     ingredients?: string,
     userId?: number, 
-    categoryId?: number
-    category?: Category
-
+    category: any
 }
 
 interface RecipeIdArg {
@@ -124,16 +138,11 @@ const resolvers = {
     Query:{
 
          // User Queries
-        getUser: async (_ : any, { token }: Token) => {
-            const user = await jwt.verify(token, process.env.SECRET || '');
-
-            return user
-        },
-        users: async (_: any, __: any, { user }: ArgUser) => {
+        users: authenticated(async (_: any, __: any, { user }: ArgUser) => {
             let users = await User.find();
 
             return users;
-        },
+        }),
 
         // Category Queries
         getCategories: authenticated(async (_: any, { filter }: FilterCategoryArg) =>{
@@ -210,11 +219,15 @@ const resolvers = {
         // User Mutations
         signUp: async (_: any, { user }: ArgUser ) =>{
             let { name, email, password } : IUserModel = user;
+            try {
             const userExist: DBUser = await User.findOne({ email })
             if(userExist) {
                 throw new Error('The email already exists')
+            }
+            if(password.length < 4) { 
+                throw new Error('Password must have at least 4 characters')
             }            
-            try {
+         
                 const salt: string  = await bcrypt.genSalt(10);
                 let nUser = new User();
                 nUser.name = name || '';
@@ -253,6 +266,28 @@ const resolvers = {
                 token
             }
         },
+        deleteUser: authenticated(async(_:any, { id }: UserID) => {
+            const userExists = await User.findOne({ id });
+
+            if(userExists) {
+                await User.remove(userExists);
+                return true;
+            }    
+
+            throw new Error('User not exists');
+        }),
+        updateUser: authenticated(async(_:any, { user }: UserUpt) => {
+            const { id } = user;
+            const userExists = await User.findOne({ id });
+
+            if(userExists) {
+                await User.update({ id }, user);
+                return await User.findOne({ id });
+            }    
+
+            throw new Error('User not exists');
+        }),
+
 
         //// category Mutations
         createCategory: authenticated(async (_: any, { input }: ICategoryArg) => {
@@ -333,9 +368,15 @@ const resolvers = {
 
                 const existsRecipe = await Recipe.findOne({ id });
                 if(existsRecipe) {
-                    if(recipe.categoryId) {
-                        recipe.category = await Category.findOne({ id: recipe.categoryId})
-                    }
+                    if(recipe.category) {
+                        const existsCategory = await Category.findOne({ id: Number(recipe.category)})
+                        if(!existsCategory)
+                            throw new Error('Category not exists');
+
+                        recipe.category = existsCategory;    
+    
+                    }  
+                    
                     await Recipe.update({ id }, recipe);
     
                     return await Recipe.findOne({ id });

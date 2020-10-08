@@ -16,6 +16,13 @@ const typeDefs = gql`
         token: String
     }
 
+    input UserInputUpdate {
+        id: ID!
+        name: String
+        email: String
+        password: String
+    }
+
     input UserInput {
         name: String!
         email: String!
@@ -32,17 +39,15 @@ const typeDefs = gql`
     type Category {
         id: ID
         name: String
-        recipes: [Recipe]
     }
 
     input NewCategoryInput {
-        name: String,
-        userId: Int
+        name: String!
     }
 
     input updateCategoryInput {
-        id: ID!,
-        name: String,
+        id: ID!
+        name: String!
     }
 
     input filterCategory {
@@ -73,7 +78,7 @@ const typeDefs = gql`
         description: String
         ingredients: String
         userId: Int
-        categoryId: Int
+        category: Int
     }
 
     input FilterRecipe {
@@ -107,11 +112,14 @@ const typeDefs = gql`
         # User
         signUp(user: UserInput!): User
         login(user: UserLoginInput!): UserToken
+        deleteUser(id: ID!): Boolean
+        updateUser(user: UserInputUpdate!): User
+
 
         # Category
         createCategory(input: NewCategoryInput!): Category
         deleteCategory(id: ID!): Category  
-        updateCategory(category: updateCategoryInput): Category
+        updateCategory(category: updateCategoryInput!): Category
 
         # Recipes 
 
