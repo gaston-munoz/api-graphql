@@ -20,3 +20,10 @@ Se debe generar un usuario, luego autenticarse y para hacer peticiones debe sumi
 {
  "authorization": "Bearer ***token***"
 }
+
+## Screenshots
+
+![Playground](/../<branch name>/screenshots/image1.png?raw=true "Playground")
+
+
+![Playground](/../<branch name>/screenshots/image2.png?raw=true "Playground")
