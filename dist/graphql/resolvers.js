@@ -19,6 +19,7 @@ const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const auth_1 = require("../auth");
 const dotenv_1 = __importDefault(require("dotenv"));
 const typeorm_1 = require("typeorm");
+const utils_1 = require("../utils");
 dotenv_1.default.config();
 const resolvers = {
     Query: {
@@ -107,6 +108,9 @@ const resolvers = {
                 }
                 if (password.length < 4) {
                     throw new Error('Password must have at least 4 characters');
+                }
+                if (!utils_1.validateEmail(email)) {
+                    throw new Error('wrong email format');
                 }
                 const salt = yield bcryptjs_1.default.genSalt(10);
                 let nUser = new user_1.User();

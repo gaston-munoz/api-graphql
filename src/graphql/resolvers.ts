@@ -6,6 +6,7 @@ import jwt from 'jsonwebtoken';
 import { authenticated, generateToken } from '../auth'
 import dotenv from 'dotenv';
 import { FindOperator, Like } from 'typeorm';
+import { validateEmail } from '../utils'
 dotenv.config();
 
 // User
@@ -220,13 +221,17 @@ const resolvers = {
         signUp: async (_: any, { user }: ArgUser ) =>{
             let { name, email, password } : IUserModel = user;
             try {
-            const userExist: DBUser = await User.findOne({ email })
+            const userExist: DBUser = await User.findOne({ email });
             if(userExist) {
-                throw new Error('The email already exists')
+                throw new Error('The email already exists');
             }
             if(password.length < 4) { 
-                throw new Error('Password must have at least 4 characters')
-            }            
+                throw new Error('Password must have at least 4 characters');
+            } 
+            if(!validateEmail(email)) {
+                throw new Error('wrong email format');
+            }
+            
          
                 const salt: string  = await bcrypt.genSalt(10);
                 let nUser = new User();
