@@ -4,10 +4,8 @@ import dotenv from 'dotenv';
 import  { ApolloServer } from 'apollo-server';
 import resolvers from './graphql/resolvers';
 import typeDefs from './graphql/schema';
-// import resolversCategory from './graphql/resolvers/categoryResolver';
-// import typeDefsCategory from './graphql/schema/categorySchema';
 import { connect } from './config/typeorm';
-import { User } from './config/entity/user'
+import { User } from './config/entity/user';
 import jwt from 'jsonwebtoken';
 dotenv.config({ path: '../.env'});
 connect();

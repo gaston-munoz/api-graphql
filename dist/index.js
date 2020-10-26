@@ -18,8 +18,6 @@ const dotenv_1 = __importDefault(require("dotenv"));
 const apollo_server_1 = require("apollo-server");
 const resolvers_1 = __importDefault(require("./graphql/resolvers"));
 const schema_1 = __importDefault(require("./graphql/schema"));
-// import resolversCategory from './graphql/resolvers/categoryResolver';
-// import typeDefsCategory from './graphql/schema/categorySchema';
 const typeorm_1 = require("./config/typeorm");
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 dotenv_1.default.config({ path: '../.env' });

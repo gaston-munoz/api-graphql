@@ -5,13 +5,7 @@
 - Clonar este repo **git clone https://github.com/gaston-munoz/api-graphql.git**
 - Ejecutar **npm install**
 - Levantar el proyecto **npm run tsc**
-- Levantar el proyecto **npm run dev**
-
-## Para solo ver en funcionamiento
-
-- Clonar este repo **git clone https://github.com/gaston-munoz/api-graphql.git**
-- Ejecutar **npm install**
-- Levantar el proyecto **npm start**
+- Levantar el proyecto **npm run dev** o **npm start**
 
 ## Este proyecto esta subido a Heroku junto con su base de datos PostgreSQL y se pueden hacer pruebas en el playground 
 [PLayground de Graphql](https://apollo-graphql-api.herokuapp.com/)
