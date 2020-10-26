@@ -4,9 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node dist/index",
-    "dev": "nodemon dist/index",
-    "tsc": "tsc --watch"
+    "start": "npm run copy-schemas && node dist/index",
+    "dev": "npm run copy-schemas && nodemon dist/index",
+    "tsc": "tsc --watch",
+    "copy-schemas": "cpx src/graphql/types/*.graphql dist/graphql/types"
   },
   "keywords": [],
   "author": "",
@@ -17,9 +18,11 @@
     "@types/signale": "^1.4.1",
     "apollo-server": "^2.18.1",
     "bcryptjs": "^2.4.3",
+    "cpx": "^1.5.0",
     "dotenv": "^8.2.0",
     "graphql": "^15.3.0",
     "jsonwebtoken": "^8.5.1",
+    "merge-graphql-schemas": "^1.7.8",
     "pg": "^8.3.3",
     "reflect-metadata": "^0.1.13",
     "signale": "^1.4.0",

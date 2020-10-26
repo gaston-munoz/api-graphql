@@ -16,17 +16,15 @@ require("reflect-metadata");
 const signale_1 = __importDefault(require("signale"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const apollo_server_1 = require("apollo-server");
-const resolvers_1 = __importDefault(require("./graphql/resolvers"));
-const schema_1 = __importDefault(require("./graphql/schema"));
+const index_1 = __importDefault(require("./graphql/types/index"));
+const index_2 = __importDefault(require("./graphql/resolvers/index"));
 const typeorm_1 = require("./config/typeorm");
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 dotenv_1.default.config({ path: '../.env' });
 typeorm_1.connect();
 const server = new apollo_server_1.ApolloServer({
-    typeDefs: schema_1.default,
-    resolvers: resolvers_1.default,
-    introspection: true,
-    playground: true,
+    typeDefs: index_1.default,
+    resolvers: index_2.default,
     context: ({ req }) => __awaiter(void 0, void 0, void 0, function* () {
         var _a;
         let token = null;
@@ -42,7 +40,7 @@ const server = new apollo_server_1.ApolloServer({
         return { user };
     })
 });
-// POrt
+// Port
 const port = process.env.PORT || 4000;
 // Starting the server
 server.listen(port)

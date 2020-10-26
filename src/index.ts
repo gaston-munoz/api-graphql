@@ -2,8 +2,11 @@ import 'reflect-metadata';
 import signale from 'signale';
 import dotenv from 'dotenv';
 import  { ApolloServer } from 'apollo-server';
-import resolvers from './graphql/resolvers';
-import typeDefs from './graphql/schema';
+
+import typeDefs from './graphql/types/index';
+import resolvers from './graphql/resolvers/index';
+
+
 import { connect } from './config/typeorm';
 import { User } from './config/entity/user';
 import jwt from 'jsonwebtoken';
@@ -12,8 +15,6 @@ connect();
 const server = new ApolloServer({
     typeDefs,
     resolvers,
-    introspection: true,
-    playground: true,
     context: async ({ req }) => {
         let token = null;
         let user = null;    
@@ -29,7 +30,7 @@ const server = new ApolloServer({
     }
 });
 
-// POrt
+// Port
 
 const port: number | string = process.env.PORT || 4000; 
 

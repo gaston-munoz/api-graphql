@@ -8,7 +8,7 @@ dotenv.config();
 
 export const connect = async () => {
   try {
-    await createConnection({
+    await createConnection({ 
         type       : 'postgres',
         host       : process.env.PG_HOST,
         port       : Number(process.env.PG_PORT),
