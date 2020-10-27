@@ -2,16 +2,13 @@ import 'reflect-metadata';
 import signale from 'signale';
 import dotenv from 'dotenv';
 import  { ApolloServer } from 'apollo-server';
-
-import typeDefs from './graphql/types/index';
-import resolvers from './graphql/resolvers/index';
-
-
+import { resolvers, typeDefs } from './graphql'
 import { connect } from './config/typeorm';
-import { User } from './config/entity/user';
 import jwt from 'jsonwebtoken';
+
 dotenv.config({ path: '../.env'});
 connect();
+
 const server = new ApolloServer({
     typeDefs,
     resolvers,
@@ -34,9 +31,10 @@ const server = new ApolloServer({
 
 const port: number | string = process.env.PORT || 4000; 
 
-// Starting the server
+// Start server
 
 server.listen(port)
     .then(({url}) => {
         signale.success(`Server listening on ${url}`);
     })
+    

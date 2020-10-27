@@ -1,72 +1,18 @@
-import { User } from '../../config/entity/user';
-import { Category } from '../../config/entity/category';
-import { Recipe } from '../../config/entity/recipe';
-import bcrypt  from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import { authenticated, generateToken } from '../../auth'
+import { User } from '../../user/user.model';
+import { Category } from '../../category/category.model';
+import { Recipe } from '../recipe.model';
+import { authenticated, generateToken } from '../../../../auth'
 import dotenv from 'dotenv';
-import { FindOperator, Like } from 'typeorm';
-import { validateEmail } from '../../utils'
-import { ArgUser } from './UserResolver'
+import {  Like } from 'typeorm';
+import { ArgUser } from '../../user/resolver/interfaces';
+import {
+    IQuery,
+    RecipeIdArg,
+    FilterRecipeArg,
+    RecipeArg,
+    UpdtRecipeArg,
+} from './interfaces'
 dotenv.config();
-
-
-
-interface RecipeArg {
-    recipe: RecipeData
-}
-
-interface RecipeData {
-    id?: number,
-    name: string,
-    description: string,
-    ingredients: string,
-    userId: number, 
-    categoryId?: number,
-}
-
-interface UpdtRecipeArg {
-    recipe: UpdtRecipe
-}
-
-interface UpdtRecipe {
-    id: number,
-    name?: string,
-    description?: string,
-    ingredients?: string,
-    userId?: number, 
-    category: any
-}
-
-interface RecipeIdArg {
-    id: number
-}
-
-interface FilterRecipeArg {
-    filter: FilterRecipe
-}
-
-interface FilterRecipe {
-    name?: string
-    description?: string
-    ingredients?: string
-    category?: number
-    user?: number
-}
-
-// Query Interface
-
-interface ICatId {
-    id: number | undefined
-}  
-
-interface IQuery {
-    name: FindOperator<string>;
-    description: FindOperator<string>;
-    ingredients: FindOperator<string>;
-    category?: ICatId | undefined 
-    user?: ICatId
-}
 
 const resolvers = {
     Query:{

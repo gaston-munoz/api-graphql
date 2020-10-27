@@ -20,7 +20,7 @@ export const connect = async () => {
             rejectUnauthorized: false
             } , 
         entities   : [
-            path.join(__dirname, 'entity/**.js')
+            path.join(__dirname, 'entities/**/*.model.js')
         ],
     });
     signale.success("PostgreSQL Cloud is connected");

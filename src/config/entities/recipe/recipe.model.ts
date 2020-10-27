@@ -1,7 +1,7 @@
 import { type } from 'os';
 import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToOne, JoinColumn, JoinTable } from 'typeorm';
-import { Category } from './category';
-import { User } from './user';
+import { Category } from '../category/category.model';
+import { User } from '../user/user.model';
 
 
 @Entity()

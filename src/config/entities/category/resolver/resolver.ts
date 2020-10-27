@@ -1,40 +1,14 @@
-import { User } from '../../config/entity/user';
-import { Category } from '../../config/entity/category';
-import { Recipe } from '../../config/entity/recipe';
-import bcrypt  from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import { authenticated, generateToken } from '../../auth'
+import { Category } from '../category.model';
+import { authenticated } from '../../../../auth'
 import dotenv from 'dotenv';
-import { FindOperator, Like } from 'typeorm';
-import { validateEmail } from '../../utils'
+import {
+  CategoryArg,
+  CategoryId,
+  FilterCategoryArg,
+  ICategoryArg,
+
+} from './interfaces'
 dotenv.config();
-
-
-interface ICategoryArg {
-    input: CategoryData
-}
-
-interface CategoryArg {
-    category: CategoryData
-}
-
-interface CategoryData {
-    id:number,
-    name: string,
-}
-
-interface CategoryId {
-    id: number
-}
-
-interface FilterCategoryArg {
-    filter?: FilterCategory
-}
-
-interface FilterCategory {
-    name?: string
-}
-
 
 const resolvers = {
     Query:{

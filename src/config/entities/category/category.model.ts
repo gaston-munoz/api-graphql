@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, BaseEntity, OneToMany  } from 'typeorm';
-import { Recipe } from './recipe';
+import { Recipe } from '../recipe/recipe.model';
 
 
 @Entity()

@@ -1,51 +1,22 @@
-import { User } from '../../config/entity/user';
-import { Category } from '../../config/entity/category';
-import { Recipe } from '../../config/entity/recipe';
+import { User } from '../user.model';
+import { Category } from '../../category/category.model';
+import { Recipe } from '../../recipe/recipe.model';
 import bcrypt  from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { authenticated, generateToken } from '../../auth'
+import { authenticated, generateToken } from '../../../../auth'
 import dotenv from 'dotenv';
 import { FindOperator, Like } from 'typeorm';
-import { validateEmail } from '../../utils'
+import { validateEmail } from '../../../../utils'
+import {
+  ArgUser,
+  IUserModel,
+  UserID,
+  UserLogin,
+  UserUpt,
+  DBUser 
+} from './interfaces'
 dotenv.config();
 
-export interface ArgUser {
-    user: IUserModel
-}
-
-interface UserID {
-    id: number
-}
-
-type DBUser =  IUserModel | undefined
-
-interface UserUpt {
-    user: IUserUpd
-}
-
-interface IUserUpd {
-    id: number,
-    name?: string,
-    email?: string,
-    password?: string,
-    createdAt?: string
-}
-
-interface IUserModel {
-    id?: number,
-    name?: string,
-    email: string,
-    password: string,
-    createdAt?: string
-}
-
-interface UserLogin {
-    user: IUserModel
-}
-
-interface Token {
-    token: string
-}
 
 const resolvers = {
     Query:{
